@@ -1,6 +1,6 @@
 # Void Terminal - Dark Hacker Website UI
 
-![Void Terminal Preview](https://via.placeholder.com/800x400/0b0f0b/0f0?text=void::terminaI+preview)
+![Screenshot_19-2-2026_22372_127 0 0 1](https://github.com/user-attachments/assets/345c4e50-d84a-47f0-afc4-65e2b9b68f0d)
 
 A dark, atmospheric hacker-themed frontend website inspired by retro terminals, cyberpunk aesthetics, and movie-style "hollywood hacking" interfaces. This project creates an immersive terminal dashboard with matrix-style visuals, live-updating log feeds, and interactive-looking panels.
 
@@ -108,3 +108,17 @@ MIT License - feel free to use for personal or commercial projects
 ##  Disclaimer
 
 This is a frontend UI concept for demonstration purposes only. It does not contain actual hacking functionality, malware, or security exploits. The interface is purely aesthetic and meant for educational/entertainment purposes.
+
+## Contact & Support
+
+Om Gedam
+
+GitHub: @itsomg134
+
+Email: omgedam123098@gmail.com
+
+Twitter (X): @omgedam
+
+LinkedIn: Om Gedam
+
+Portfolio: https://ogworks.lovable.app
