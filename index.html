@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>void::terminaI - access granted</title>
+  <!-- matrix / dark hacker aesthetic -->
+  <style>
+    /* global reset & neon‑dystopia palette */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0b0f0b;
+      background-image: 
+        linear-gradient(rgba(0, 255, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      font-family: 'Courier New', Courier, 'Lucida Sans Typewriter', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      color: #b3ffb3;
+      position: relative;
+    }
+
+    /* flickering scanline overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 20, 0, 0.4) 0px,
+        rgba(0, 255, 0, 0.02) 2px,
+        transparent 3px,
+        transparent 5px
+      );
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: overlay;
+    }
+
+    /* main terminal panel – glitchy glass container */
+    .terminal {
+      background-color: rgba(10, 20, 10, 0.85);
+      backdrop-filter: blur(3px);
+      border: 2px solid #1f9e1f;
+      box-shadow: 0 0 30px #1f9e1f, inset 0 0 10px rgba(0, 255, 0, 0.2);
+      width: 100%;
+      max-width: 950px;
+      padding: 2rem 2rem 2.2rem;
+      border-radius: 4px;
+      position: relative;
+      z-index: 10;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .terminal:hover {
+      box-shadow: 0 0 45px #22ff22, inset 0 0 15px #22ff22;
+    }
+
+    /* ascii header – unblinking eye & signature */
+    .ascii-art {
+      color: #0f0;
+      font-size: 0.75rem;
+      line-height: 1.3;
+      white-space: pre;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 0 6px #0f0;
+      letter-spacing: -0.5px;
+    }
+
+    /* status line with blinking cursor effect */
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e9e1e;
+      padding-bottom: 0.6rem;
+      margin-bottom: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.85rem;
+    }
+
+    .blink {
+      animation: pulse 1.2s step-end infinite;
+      background-color: #0f0;
+      color: #000;
+      padding: 0.2rem 0.8rem;
+      border-radius: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; background-color: #0f0; color: #000; }
+      50% { opacity: 0.3; background-color: #030; color: #0f0; }
+    }
+
+    .network-info {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .network-info span {
+      border: 1px solid #1e9e1e;
+      padding: 0.2rem 1rem;
+      background: #000c00;
+    }
+
+    /* main two‑column hacker dashboard */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.6fr 0.9fr;
+      gap: 1.8rem;
+      margin: 2rem 0 1.5rem;
+    }
+
+    @media (max-width: 680px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+
+    /* left side – logs / active intrusion */
+    .log-panel {
+      background: #030803;
+      border: 1px solid #2aad2a;
+      padding: 1.2rem 1rem;
+      box-shadow: inset 0 0 20px rgba(0, 30, 0, 0.8);
+    }
+
+    .log-panel h3 {
+      color: #22ee22;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      margin-bottom: 1rem;
+      border-left: 4px solid #0f0;
+      padding-left: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .log-stream {
+      list-style: none;
+    }
+
+    .log-stream li {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      border-bottom: 1px dotted #1a551a;
+      padding: 0.3rem 0;
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .log-stream li::before {
+      content: '[>]';
+      color: #0f0;
+      font-weight: bold;
+      margin-right: 0.6rem;
+    }
+
+    .log-stream .access {
+      color: #88ff88;
+    }
+
+    .log-stream .warn {
+      color: #ffb86b;
+    }
+
+    .log-stream .warn::before {
+      content: '[!]';
+      color: #ffaa33;
+    }
+
+    .highlight {
+      background: #132113;
+      padding: 0.2rem 0.3rem;
+      color: #b3ffb3;
+      border-left: 3px solid #0f0;
+    }
+
+    /* right side – tools & system panel */
+ .sys-panel {
+   background: #051005;
+   border: 1px solid #22aa22;
+   padding: 1.2rem;
+   box-shadow: 0 0 15px #204020;
+ }
+
+ .sys-panel h3 {
+   font-size: 1rem;
+   margin-bottom: 1rem;
+   border-bottom: 1px dashed #1f9e1f;
+   padding-bottom: 0.4rem;
+   color: #2ecc2e;
+ }
+
+ .sys-panel .stats {
+   list-style: none;
+   margin-bottom: 1.8rem;
+ }
+
+ .stats li {
+   display: flex;
+   justify-content: space-between;
+   padding: 0.3rem 0;
+   border-bottom: 1px solid #1d4f1d;
+   font-size: 0.9rem;
+ }
+
+ .stats .value {
+   color: #0f0;
+   font-weight: bold;
+   text-shadow: 0 0 5px #0f0;
+ }
+
+ .progress {
+   width: 100%;
+   height: 16px;
+   background: #102010;
+   border: 1px solid #1d801d;
+   margin: 0.5rem 0 1.2rem;
+ }
+
+ .progress-fill {
+   width: 73%;
+   height: 100%;
+   background: repeating-linear-gradient(45deg, #0f0, #0f0 8px, #1e6b1e 8px, #1e6b1e 16px);
+   box-shadow: 0 0 8px #0f0;
+   animation: scan 6s linear infinite;
+ }
+
+ @keyframes scan {
+   0% { background-position: 0 0; }
+   100% { background-position: 32px 0; }
+ }
+
+ /* exploit toolkit – buttons / code snippets */
+ .toolkit {
+   display: flex;
+   flex-direction: column;
+   gap: 0.6rem;
+   margin-top: 1rem;
+ }
+
+ .tool-btn {
+   background: transparent;
+   border: 1px solid #1b941b;
+   color: #0f0;
+   font-family: 'Courier New', monospace;
+   font-weight: bold;
+   font-size: 1rem;
+   padding: 0.7rem 0.5rem;
+   cursor: pointer;
+   text-align: left;
+   padding-left: 1.5rem;
+   letter-spacing: 1px;
+   transition: 0.2s;
+   box-shadow: 0 0 5px transparent;
+   position: relative;
+ }
+
+ .tool-btn:hover {
+   background: #0f0f0f;
+   border-color: #44ff44;
+   box-shadow: 0 0 18px #44ff44;
+   text-shadow: 0 0 8px #0f0;
+ }
+
+ .tool-btn::before {
+   content: '⌘';
+   position: absolute;
+   left: 6px;
+   color: #0f0;
+   opacity: 0.7;
+ }
+
+ /* bottom panel – active connections & progress */
+ .footer-panel {
+   margin-top: 2rem;
+   border-top: 2px solid #208020;
+   padding-top: 1.5rem;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 2rem;
+   justify-content: space-between;
+ }
+
+ .connection-grid {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 1.2rem;
+ }
+
+ .connection-item {
+   background: #031003;
+   border: 1px solid #1f9e1f;
+   padding: 0.5rem 1.2rem;
+   font-size: 0.85rem;
+   color: #44dd44;
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+ }
+
+ .led {
+   width: 10px;
+   height: 10px;
+   background-color: #0f0;
+   border-radius: 50%;
+   box-shadow: 0 0 10px #0f0;
+   animation: led-blink 1.4s infinite;
+ }
+
+ .led.red {
+   background-color: #ff4d4d;
+   box-shadow: 0 0 12px #f44;
+   animation: led-blink 0.8s infinite;
+ }
+
+ @keyframes led-blink {
+   0%, 100% { opacity: 1; }
+   50% { opacity: 0.2; }
+ }
+
+ /* typing input line – command */
+ .command-line {
+   display: flex;
+   align-items: center;
+   background: #030903;
+   border: 1px solid #1f9e1f;
+   padding: 0.6rem 1rem;
+   margin-top: 1rem;
+ }
+
+ .prompt {
+   color: #0f0;
+   font-weight: bold;
+   font-size: 1.1rem;
+   margin-right: 0.8rem;
+   text-shadow: 0 0 8px #0f0;
+ }
+
+ input.command {
+   background: transparent;
+   border: none;
+   outline: none;
+   color: #b3ffb3;
+   font-family: 'Courier New', monospace;
+   font-size: 1.1rem;
+   width: 100%;
+   caret-color: #0f0;
+   text-shadow: 0 0 3px #0f0;
+ }
+
+ input.command::placeholder {
+   color: #255e25;
+   font-style: italic;
+ }
+
+ /* glitch effects for dark theme */
+ .glitch-text {
+   position: relative;
+   display: inline-block;
+ }
+
+ .glitch-text::before,
+ .glitch-text::after {
+   content: attr(data-text);
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: #030803;
+ }
+
+ .glitch-text::before {
+   left: 2px;
+   text-shadow: -2px 0 #ff00c1;
+   animation: glitch-1 0.4s infinite linear alternate-reverse;
+ }
+
+ .glitch-text::after {
+   left: -2px;
+   text-shadow: 2px 0 #00fff9;
+   animation: glitch-2 0.4s infinite linear alternate-reverse;
+ }
+
+ @keyframes glitch-1 {
+   0% { clip-path: inset(20% 0 30% 0); }
+   100% { clip-path: inset(60% 0 10% 0); }
+ }
+
+ @keyframes glitch-2 {
+   0% { clip-path: inset(40% 0 40% 0); }
+   100% { clip-path: inset(10% 0 60% 0); }
+ }
+
+ /* misc */
+ hr {
+   border: none;
+   border-top: 1px dashed #1d6b1d;
+   margin: 0.7rem 0;
+ }
+
+ .signature {
+   text-align: right;
+   font-size: 0.75rem;
+   color: #277a27;
+   margin-top: 1.2rem;
+   border-top: 1px solid #1f5f1f;
+   padding-top: 0.8rem;
+ }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <!-- ascii logo / dark hoodie figure -->
+    <div class="ascii-art">
+      <pre>
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⢀⣴⠾⠛⠛⠻⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⢠⡿⠁⠀⠀⠀⠀⠈⢿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⣾⠇⠀⠀⠀⠀⠀⠀⠘⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⢰⡿⠀⠀⠀⠀⣰⣦⡀⠀⢻⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⣴⣿⣿⣷⡀⠘⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠘⣿⡀⠀⠀⠻⣿⣿⣿⠃⠀⢸⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⢻⣧⠀⠀⠀⠈⠉⠁⠀⠀⣾⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠹⣷⣄⣀⣀⣀⣀⣠⣾⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀
+  ⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠟⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+      </pre>
+      <span style="color:#1f9e1f;">[ root@void::terminaI ] - (Unauthorized access detected)</span>
+    </div>
+
+    <!-- status bar / live intrusion banner -->
+    <div class="status-bar">
+      <div class="blink">⚡ ACTIVE SHELL ⚡</div>
+      <div class="network-info">
+        <span>LAN ➜ 10.0.4.66</span>
+        <span>EXT ➜ 198.51.233.7</span>
+        <span>TOR 🧅 online</span>
+      </div>
+    </div>
+
+    <!-- main dashboard: logs + system tools -->
+    <div class="dashboard">
+      <!-- left: intrusion logs / sniffed packets -->
+      <div class="log-panel">
+        <h3>⌨️ /var/log/intrusion.log</h3>
+        <ul class="log-stream">
+          <li class="access">SSH brute‑force  -> 45.155.205.124:22 [ACCEPT]</li>
+          <li class="access">POST /wp-admin/admin‑ajax.php  (wpscan) </li>
+          <li class="warn">IDS:  possible port scan from 192.168.0.13</li>
+          <li>SQLi payload: ' OR 1=1; -- -  [filtered]</li>
+          <li class="access">Reverse shell established: 10.0.4.66:4443</li>
+          <li>DROPPED: malformed UDP packet (size 65507)</li>
+          <li class="warn">⚠️  kernel:  tcp:  possible SYN flood</li>
+          <li>dnsmasq:  query .onion  [x]</li>
+          <li>**FTP anonymous login** @ 217.12.202.8</li>
+        </ul>
+        <hr>
+        <div style="display: flex; gap: 1rem; font-size:0.8rem;">
+          <span class="highlight">> sessions: 4 active</span>
+          <span class="highlight">> sniffing: eth0 (promisc)</span>
+        </div>
+      </div>
+
+      <!-- right: system resource / payload launcher -->
+      <div class="sys-panel">
+        <h3>🌐  system :: resources</h3>
+        <ul class="stats">
+          <li>CPU <span class="value">67%</span></li>
+          <li>MEM <span class="value">1.4G/2G</span></li>
+          <li>NET TX <span class="value">1.2Gb/s 🔺</span></li>
+          <li>NET RX <span class="value">3.4Gb/s</span></li>
+          <li>encryption<span class="value">AES‑256</span></li>
+        </ul>
+
+        <!-- progress bar = crypto / payload load -->
+        <div style="font-size:0.8rem; margin-bottom: 0.2rem;">[ payload bruteforce ] 73%</div>
+        <div class="progress">
+          <div class="progress-fill"></div>
+        </div>
+
+        <!-- toolkit / buttons represent exploits -->
+        <div class="toolkit">
+          <button class="tool-btn" onclick="window.location='#'">deauth AP :: -a0:36:9f:... </button>
+          <button class="tool-btn" onclick="window.location='#'">mysql union inject // --dump</button>
+          <button class="tool-btn" onclick="window.location='#'">reverse_tcp (meterpreter)</button>
+          <button class="tool-btn" onclick="window.location='#'"> crack shadow • rockyou.txt</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer connections panel -->
+    <div class="footer-panel">
+      <div class="connection-grid">
+        <div class="connection-item"><span class="led"></span> 10.0.0.23:8080 (stager)</div>
+        <div class="connection-item"><span class="led red"></span> 192.168.1.105:445 (SMB)</div>
+        <div class="connection-item"><span class="led"></span> 185.130.5.205:53 (DNS)</div>
+      </div>
+      <div style="font-size:0.8rem; color: #287a28;">⏳ up 6d 14h • load 2.4</div>
+    </div>
+
+    <!-- interactive command line (fake) -->
+    <div class="command-line">
+      <span class="prompt">$</span>
+      <input class="command" type="text" placeholder="root@void:~#  ./exploit -t 10.0.4.66 -p 4443" readonly onfocus="this.blur()">
+    </div>
+
+    <!-- glitch text & signature -->
+    <div class="signature">
+      <span class="glitch-text" data-text="> w3lc0m3 t0 th3 mach1n3 **">> w3lc0m3 t0 th3 mach1n3 **</span>
+      <br>
+      <span style="letter-spacing: 2px;">{ access granted }  &nbsp;&nbsp;  🖧  [tcp/ip stack corrupted]</span>
+    </div>
+  </div>
+
+  <!-- subtle matrix effect (background script) -->
+  <script>
+    (function() {
+      // extra matrix spark – just console noise & occasional glitch on inputs
+      console.log("%c🔐 INITIALIZING BACKDOOR: 0x7F4E2A1 🔐", "color: #0f0; font-size: 12px; font-family: monospace");
+      // optional: move some elements randomly (tiny glitch)
+      setInterval(() => {
+        const glitch = document.querySelector('.glitch-text');
+        if (glitch && Math.random() > 0.7) {
+          glitch.style.transform = `translate(${Math.random()*2 - 1}px, ${Math.random()*1 - 0.5}px)`;
+          setTimeout(() => glitch.style.transform = 'translate(0,0)', 50);
+        }
+      }, 400);
+    })();
+  </script>
+</body>
+</html>
